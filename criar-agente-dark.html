@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criar meu agente</title>
+<style>
+  :root{
+    --bg:#070a10; --glass:rgba(255,255,255,.035); --glass-2:rgba(255,255,255,.05);
+    --line:rgba(255,255,255,.09); --ink:#e9eef6; --muted:#b3bccb; --faint:#8b94a4;
+    --ac:#2fe0cf; --ac-2:#7c6cff; --ac-dark:#06151a;
+    --ac-soft:rgba(47,224,207,.1); --ac-glow:rgba(47,224,207,.35);
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{
+    background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(900px 500px at 50% -8%,rgba(47,224,207,.10),transparent 60%),
+      radial-gradient(700px 500px at 100% 0%,rgba(124,108,255,.10),transparent 55%),
+      linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+    background-size:auto,auto,46px 46px,46px 46px;background-attachment:fixed;
+  }
+  button{font-family:inherit;cursor:pointer}
+  :focus-visible{outline:2px solid var(--ac);outline-offset:2px;border-radius:5px}
+  ::selection{background:var(--ac);color:var(--ac-dark)}
+
+  .wrap{max-width:600px;margin:0 auto;padding:0 20px 60px}
+  header{display:flex;align-items:center;gap:13px;padding:24px 0 10px}
+  .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--ac),var(--ac-2));display:grid;place-items:center;color:#05121a;font-weight:800;font-size:18px;box-shadow:0 0 22px var(--ac-glow)}
+  header b{font-size:16px;letter-spacing:-.01em}
+  header small{color:var(--faint);font-size:12px;display:block;font-weight:400;letter-spacing:.04em;font-family:var(--mono)}
+  header .sp{flex:1}
+  .link{background:none;border:0;color:var(--ac);font-size:14px;font-weight:600;padding:6px 4px}
+  .link:hover{text-shadow:0 0 12px var(--ac-glow)}
+
+  .dots{display:flex;gap:7px;margin:20px 0 30px}
+  .dots i{height:5px;flex:1;background:var(--line);border-radius:6px;transition:.35s}
+  .dots i.on{background:linear-gradient(90deg,var(--ac),var(--ac-2));box-shadow:0 0 14px var(--ac-glow)}
+  .dots i.done{background:var(--ac);opacity:.4}
+
+  .card{
+    background:linear-gradient(180deg,var(--glass-2),var(--glass));
+    border:1px solid var(--line);border-radius:18px;padding:30px 28px;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 24px 60px rgba(0,0,0,.5);
+    position:relative;overflow:hidden;
+  }
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--ac-glow),transparent)}
+  .step-eyebrow{font-family:var(--mono);color:var(--ac);font-size:11.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;margin-bottom:9px}
+  h1{font-size:25px;line-height:1.2;margin:0 0 7px;letter-spacing:-.02em}
+  .lede{color:var(--muted);margin:0 0 24px;font-size:15px}
+
+  .q{margin-bottom:24px}
+  .q:last-child{margin-bottom:0}
+  .q label{display:block;font-weight:650;font-size:15.5px;margin-bottom:3px}
+  .q .ex{color:var(--faint);font-size:13.5px;margin:0 0 10px}
+  input[type=text]{width:100%;background:rgba(255,255,255,.04);border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;font-family:inherit;font-size:15.5px;color:var(--ink);transition:.15s}
+  input:focus{border-color:var(--ac);background:rgba(47,224,207,.05);outline:none;box-shadow:0 0 0 4px var(--ac-soft)}
+  input::placeholder{color:var(--faint)}
+
+  .sugg-lbl{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin:2px 0 10px;letter-spacing:.03em}
+  .voicebox{margin-top:16px;background:rgba(124,108,255,.08);border:1px solid var(--line);border-left:2px solid var(--ac-2);border-radius:11px;padding:13px 15px}
+  .voicebox .vh{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ac-2);margin-bottom:7px}
+  .voicebox .vq{color:var(--faint);font-size:13px;margin-bottom:5px}
+  .voicebox .va{font-size:15px;color:var(--ink);line-height:1.5}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:11px}
+  .chip{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.04);border:1.5px solid var(--line);border-radius:30px;padding:7px 14px;font-size:14.5px;color:var(--ink);transition:.13s}
+  .chip:hover{border-color:var(--ac);background:var(--ac-soft)}
+  .chip.on{background:var(--ac);border-color:var(--ac);color:var(--ac-dark);font-weight:650;box-shadow:0 0 16px var(--ac-glow)}
+  .chip .x{font-size:16px;line-height:1;opacity:.75;margin-left:1px}
+  .chip.on .x:hover{opacity:1}
+  .added{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .addrow{display:flex;gap:8px}
+  .addrow input{flex:1}
+  .addrow button{flex:none;background:var(--ac-soft);color:var(--ac);border:1.5px solid var(--ac);border-radius:11px;padding:0 16px;font-weight:600;font-size:14px}
+  .addrow button:hover{background:var(--ac);color:var(--ac-dark);box-shadow:0 0 16px var(--ac-glow)}
+
+  .yn{display:flex;gap:10px}
+  .yn button{flex:1;background:rgba(255,255,255,.04);border:1.5px solid var(--line);border-radius:11px;padding:13px;font-size:15px;font-weight:600;color:var(--muted)}
+  .yn button.on{background:var(--ac-soft);border-color:var(--ac);color:var(--ac);box-shadow:0 0 16px var(--ac-glow)}
+  .picks{display:flex;flex-direction:column;gap:8px}
+  .pick{text-align:left;background:rgba(255,255,255,.04);border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;font-size:14.5px;color:var(--ink);line-height:1.4}
+  .pick:hover{border-color:var(--ac);background:var(--ac-soft)}
+  .pick.on{border-color:var(--ac);background:var(--ac-soft);color:var(--ac);font-weight:600;box-shadow:0 0 14px var(--ac-glow)}
+
+  .nav{display:flex;gap:12px;margin-top:26px}
+  .nav button{flex:1;border-radius:12px;padding:14px;font-size:15.5px;font-weight:650;border:1.5px solid var(--line);background:rgba(255,255,255,.04);color:var(--ink);transition:.15s}
+  .nav button.back{flex:0 0 auto;padding:14px 22px;color:var(--muted)}
+  .nav button.next{background:linear-gradient(135deg,var(--ac),var(--ac-2));color:var(--ac-dark);border:0;box-shadow:0 0 24px var(--ac-glow)}
+  .nav button.next:hover{filter:brightness(1.08)}
+  .nav button.back:hover{border-color:var(--muted)}
+
+  .done-badge{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac-2));display:grid;place-items:center;font-size:27px;color:var(--ac-dark);margin:0 auto 14px;box-shadow:0 0 30px var(--ac-glow)}
+  .result-out{background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:13px;padding:18px;font-family:var(--mono);font-size:13.5px;line-height:1.7;white-space:pre-wrap;color:#cdd6e3;max-height:340px;overflow:auto;margin:18px 0 10px}
+  .howto{background:var(--ac-soft);border:1px solid var(--line);border-radius:11px;padding:13px 15px;font-size:13.5px;color:var(--ink);margin-bottom:18px}
+  .howto b{display:block;margin-bottom:3px;color:var(--ac);font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+  .ractions{display:flex;gap:10px;flex-wrap:wrap}
+  .ractions button{flex:1;min-width:140px;border-radius:12px;padding:13px;font-size:15px;font-weight:650;border:1.5px solid var(--line);background:rgba(255,255,255,.04);color:var(--ink)}
+  .ractions button.prim{background:linear-gradient(135deg,var(--ac),var(--ac-2));color:var(--ac-dark);border:0;box-shadow:0 0 22px var(--ac-glow)}
+  .ractions button.prim:hover{filter:brightness(1.08)}
+  .ractions button:not(.prim):hover{border-color:var(--muted)}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(11,15,23,.95);border:1px solid var(--ac);color:var(--ac);font-size:14px;font-weight:600;padding:12px 20px;border-radius:11px;opacity:0;transition:.25s;pointer-events:none;box-shadow:0 0 24px var(--ac-glow);backdrop-filter:blur(8px)}
+  .toast.show{opacity:1;transform:translateX(-50%)}
+  .section{margin-top:22px;border-top:1px solid var(--line);padding-top:20px}
+  .section .sh{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ac);margin-bottom:5px}
+  .section h2{font-size:18px;margin:0 0 6px;letter-spacing:-.01em}
+  .section .note{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+  .tabs{display:flex;gap:8px;margin-bottom:14px}
+  .tab{flex:1;background:rgba(255,255,255,.04);border:1.5px solid var(--line);border-radius:11px;padding:11px;font-size:14px;font-weight:650;color:var(--muted)}
+  .tab.on{border-color:var(--ac);color:var(--ac);background:var(--ac-soft);box-shadow:0 0 14px var(--ac-glow)}
+  .steps{counter-reset:s;list-style:none;padding:0;margin:0 0 14px}
+  .steps li{counter-increment:s;position:relative;padding:9px 0 9px 38px;font-size:14.5px;color:var(--ink);border-bottom:1px solid rgba(255,255,255,.05)}
+  .steps li:last-child{border-bottom:0}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:7px;width:24px;height:24px;border-radius:7px;background:var(--ac-soft);border:1px solid var(--ac);color:var(--ac);font-family:var(--mono);font-size:12px;font-weight:600;display:grid;place-items:center}
+  .openbtn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;background:linear-gradient(135deg,var(--ac),var(--ac-2));color:var(--ac-dark);font-weight:650;font-size:14px;padding:11px 16px;border-radius:11px;box-shadow:0 0 18px var(--ac-glow)}
+  .openbtn:hover{filter:brightness(1.08)}
+  .kb{list-style:none;padding:0;margin:0 0 16px;display:flex;flex-direction:column;gap:8px}
+  .kb li{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px}
+  .kb li b{color:var(--ac);font-family:var(--mono);font-size:12px}
+  .kb li code{font-family:var(--mono);font-size:11px;color:var(--ac-2);background:rgba(124,108,255,.1);padding:2px 7px;border-radius:5px;margin-left:auto;white-space:nowrap}
+  .darch{font-size:13.5px;color:var(--muted);line-height:1.8}
+  @media (max-width:560px){.card{padding:24px 20px}h1{font-size:22px}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">✦</div>
+    <b>Criar meu agente<small>SIMPLES · EM POUCOS PASSOS</small></b>
+    <div class="sp"></div>
+    <button class="link" id="exBtn">Ver exemplo</button>
+  </header>
+  <div class="dots" id="dots"></div>
+  <div id="app"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const blank=()=>({nome:"",funcao:"",publico:"",valores:[],nunca:[],incerteza:"",tom:[],evitar:[],frase:"",habilidades:[],lembra:null});
+let S=blank(), step=0;
+const STEPS=4;
+
+const $=s=>document.querySelector(s);
+const esc=t=>(t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),1700);}
+function slug(t){return (t||"agente").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
+
+/* autosave (funciona ao abrir o arquivo localmente; silencioso se bloqueado) */
+const KEY="atlas_agente_rascunho_v1";
+function saveDraft(){try{localStorage.setItem(KEY,JSON.stringify({S,step}));}catch(e){}}
+function loadDraft(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&d.S){S=Object.assign(blank(),d.S);step=Math.min(d.step||0,STEPS);return true;}}}catch(e){}return false;}
+function clearDraft(){try{localStorage.removeItem(KEY);}catch(e){}}
+
+/* até 10 sugestões por pergunta */
+const SUG={
+  valores:["Honestidade","Clareza","Agilidade","Cuidado com o cliente","Paciência","Bom humor","Empatia","Proatividade","Discrição","Confiabilidade"],
+  nunca:["Inventar informação","Prometer o que não pode cumprir","Falar mal de concorrentes","Compartilhar dados de clientes","Dar conselho médico ou jurídico","Usar linguagem ofensiva","Pressionar para vender","Fingir ser humano","Decidir sozinho assuntos sérios","Ignorar pedido de ajuda humana"],
+  tom:["Amigável","Profissional","Direto","Caloroso","Animado","Formal","Empático","Bem-humorado","Calmo","Confiante"],
+  evitar:["Gírias","Termos técnicos","\u2018Prezado cliente\u2019","Emojis","Respostas longas","Jargão de vendas","Promessas exageradas","Tom robótico","Abreviações","Palavrões"],
+  habilidades:["Responder dúvidas","Recomendar produtos","Agendar horários","Registrar pedidos","Encaminhar para uma pessoa","Calcular orçamentos","Explicar como usar um produto","Acompanhar status de pedido","Coletar contato do cliente","Enviar lembretes"]
+};
+
+function dots(){
+  let h="";for(let i=0;i<STEPS;i++)h+=`<i class="${i===step?'on':i<step?'done':''}"></i>`;
+  $("#dots").innerHTML = step>=STEPS ? Array(STEPS).fill('<i class="done"></i>').join("") : h;
+}
+
+const PICK_INCERTEZA=["Dá a melhor resposta possível e avisa que não tem certeza","Admite que não sabe e encaminha para uma pessoa","Faz mais perguntas antes de responder"];
+function pickGroup(key,opts){
+  return `<div class="picks">`+opts.map(o=>`<button class="pick ${S[key]===o?'on':''}" aria-pressed="${S[key]===o}" data-pick="${key}" data-v="${esc(o)}">${esc(o)}</button>`).join("")+`</div>`;
+}
+function chipGroup(key,suggestions){
+  const sel=S[key];
+  const added=sel.filter(v=>!suggestions.includes(v));
+  const sugg=suggestions.map(v=>`<button class="chip ${sel.includes(v)?'on':''}" aria-pressed="${sel.includes(v)}" data-tog="${key}" data-v="${esc(v)}">${esc(v)}${sel.includes(v)?' <span class="x">×</span>':''}</button>`).join("");
+  const addedChips=added.map(v=>`<button class="chip on" aria-pressed="true" data-rm="${key}" data-v="${esc(v)}">${esc(v)} <span class="x">×</span></button>`).join("");
+  return `<div class="sugg-lbl">Toque para escolher — ou escreva o seu</div>
+    <div class="chips">${sugg}</div>
+    ${added.length?`<div class="added">${addedChips}</div>`:""}
+    <div class="addrow"><input type="text" data-add="${key}" placeholder="escrever outro…" aria-label="Adicionar opção personalizada"><button data-addbtn="${key}">Adicionar</button></div>`;
+}
+
+function render(){
+  dots();
+  const a=$("#app");
+  if(step>=STEPS){ a.innerHTML=resultView(); bind(); saveDraft(); return; }
+  let h=`<div class="card">`;
+  if(step===0){
+    h+=`<div class="step-eyebrow">Passo 1 de 4</div><h1>Quem é o seu agente?</h1>
+    <p class="lede">Dê um nome e diga, em uma frase, o que ele faz por você.</p>
+    <div class="q"><label>Como ele se chama?</label><p class="ex">Pode ser um nome ou um apelido.</p><input type="text" data-f="nome" value="${esc(S.nome)}" placeholder="Ex.: Lia"></div>
+    <div class="q"><label>O que ele faz por você?</label><p class="ex">A tarefa principal dele.</p><input type="text" data-f="funcao" value="${esc(S.funcao)}" placeholder="Ex.: tira dúvidas dos clientes da minha loja de roupas"></div>
+    <div class="q"><label>Com quem ele conversa? <span style="color:var(--faint);font-weight:400">(opcional)</span></label><input type="text" data-f="publico" value="${esc(S.publico)}" placeholder="Ex.: clientes da loja"></div>`;
+  }
+  if(step===1){
+    h+=`<div class="step-eyebrow">Passo 2 de 4</div><h1>Como ele deve ser?</h1>
+    <p class="lede">A "personalidade" dele — o que valoriza e os limites que nunca cruza.</p>
+    <div class="q"><label>No que ele acredita?</label><p class="ex">Dica: ponha primeiro o mais importante.</p>${chipGroup("valores",SUG.valores)}</div>
+    <div class="q"><label>O que ele NUNCA deve fazer?</label>${chipGroup("nunca",SUG.nunca)}</div>
+    <div class="q"><label>Se ${esc(S.nome.trim()||"ele")} não tiver certeza de uma resposta, o que ele faz?</label><p class="ex">Esta é a regra mais importante: define como ele age quando você não está lá.</p>${pickGroup("incerteza",PICK_INCERTEZA)}</div>`;
+  }
+  if(step===2){
+    h+=`<div class="step-eyebrow">Passo 3 de 4</div><h1>Como ele fala?</h1>
+    <p class="lede">Escolha o jeito de conversar. Pode marcar mais de um.</p>
+    <div class="q"><label>O tom dele é…</label>${chipGroup("tom",SUG.tom)}</div>
+    <div class="q"><label>Tem algo que ele deve evitar dizer? <span style="color:var(--faint);font-weight:400">(opcional)</span></label>${chipGroup("evitar",SUG.evitar)}</div>
+    <div class="q"><label>Uma frase que ele sempre diz <span style="color:var(--faint);font-weight:400">(opcional)</span></label><p class="ex">Um exemplo real ensina o jeito dele melhor que qualquer adjetivo.</p><input type="text" data-f="frase" value="${esc(S.frase)}" placeholder="Ex.: \u2018Pode deixar comigo!\u2019"></div>
+    ${voiceBox()}`;
+  }
+  if(step===3){
+    h+=`<div class="step-eyebrow">Passo 4 de 4</div><h1>O que ele sabe fazer?</h1>
+    <p class="lede">Liste as principais coisas que ele resolve.</p>
+    <div class="q"><label>Ele sabe…</label>${chipGroup("habilidades",SUG.habilidades)}</div>
+    <div class="q"><label>Ele deve lembrar de conversas anteriores com a mesma pessoa?</label>
+      <div class="yn">
+        <button data-yn="lembra" data-v="sim" class="${S.lembra===true?'on':''}" aria-pressed="${S.lembra===true}">Sim, ele lembra</button>
+        <button data-yn="lembra" data-v="nao" class="${S.lembra===false?'on':''}" aria-pressed="${S.lembra===false}">Não, começa do zero</button>
+      </div></div>`;
+  }
+  h+=`<div class="nav">
+    ${step>0?`<button class="back" data-nav="-1">Voltar</button>`:""}
+    <button class="next" data-nav="1">${step===STEPS-1?'Ver meu agente':'Continuar'}</button>
+  </div></div>`;
+  a.innerHTML=h; bind(); saveDraft();
+}
+
+function buildPrompt(){
+  const nome=S.nome.trim()||"seu assistente";
+  let p=`Você é ${nome}`;
+  if(S.funcao.trim())p+=`. Você ajuda a ${S.funcao.trim()}`;
+  if(S.publico.trim())p+=`, conversando com ${S.publico.trim()}`;
+  p+=".\n";
+  if(S.valores.length){p+=`\nNo que você acredita (em ordem de prioridade):\n`+S.valores.map((v,i)=>`${i+1}. ${v}`).join("\n")+"\n";
+    p+=`Quando dois objetivos entrarem em conflito, priorize sempre ${S.valores[0].toLowerCase()}.\n`;}
+  if(S.nunca.length)p+=`\nVocê NUNCA:\n`+S.nunca.map(v=>`- ${v}`).join("\n")+"\n";
+  if(S.incerteza)p+=`\nQuando não tiver certeza de algo: ${S.incerteza.charAt(0).toLowerCase()+S.incerteza.slice(1)}.\n`;
+  if(S.tom.length)p+=`\nComo você fala: de forma ${listar(S.tom.map(t=>t.toLowerCase()))}.`;
+  if(S.evitar.length)p+=` Evite: ${listar(S.evitar.map(e=>e.toLowerCase()))}.`;
+  if(S.tom.length||S.evitar.length)p+="\n";
+  if(S.frase.trim())p+=`Uma frase típica sua: "${S.frase.trim()}".\n`;
+  if(S.habilidades.length)p+=`\nO que você sabe fazer:\n`+S.habilidades.map(v=>`- ${v}`).join("\n")+"\n";
+  if(S.lembra===true)p+=`\nLembre-se do que cada pessoa já te contou em conversas anteriores e use isso para ajudar melhor.\n`;
+  p+=`\nQuando você não souber algo, diga com sinceridade em vez de adivinhar — e, se precisar, encaminhe para uma pessoa.`;
+  return p;
+}
+function listar(arr){ if(arr.length===1)return arr[0]; return arr.slice(0,-1).join(", ")+" e "+arr[arr.length-1]; }
+
+/* prova viva da voz — uma resposta de exemplo que muda com o tom escolhido */
+function sampleReply(){
+  const t=S.tom.map(x=>x.toLowerCase()), has=x=>t.includes(x);
+  const semEmoji=S.evitar.some(e=>/emoji/i.test(e));
+  const curto=has("direto")||S.evitar.some(e=>/longa/i.test(e));
+  let abre="";
+  if(has("animado"))abre="Oba! ";
+  else if(has("caloroso")||has("amigável"))abre=semEmoji?"Oi! Que bom que perguntou — ":"Oi! 😊 Que bom que perguntou — ";
+  else if(has("bem-humorado"))abre="Boa pergunta! ";
+  else if(has("empático"))abre="Entendo a dúvida — ";
+  else if(has("formal"))abre="Olá. ";
+  const base="entregamos no mesmo dia para pedidos feitos até as 16h";
+  let corpo = abre ? base : base.charAt(0).toUpperCase()+base.slice(1);
+  let fim = ".";
+  if(!curto){ fim = has("confiante") ? ". Pode contar comigo." : ". Se quiser, já deixo separado pra você."+(semEmoji?"":" 🙂"); }
+  return abre+corpo+fim;
+}
+function voiceBox(){
+  if(!S.tom.length) return "";
+  const nome=(S.nome.trim()||"Ele");
+  return `<div class="voicebox"><div class="vh">Como ${esc(nome)} responderia</div>
+    <div class="vq">Cliente: \u201cVocês entregam no mesmo dia?\u201d</div>
+    <div class="va">${esc(sampleReply())}</div></div>`;
+}
+
+/* ativação por plataforma + base de conhecimento (camada Lembrança do ATLAS) */
+const ACT={
+  gpt:{url:"https://chatgpt.com/gpts/editor",btn:"Abrir o criador de GPTs",steps:[
+    "Em chatgpt.com, abra \u201cExplorar GPTs\u201d e clique em \u201cCriar\u201d (precisa do ChatGPT Plus).",
+    "Vá na aba \u201cConfigurar\u201d.",
+    "Em \u201cInstruções\u201d, cole o texto que você copiou aqui.",
+    "Em \u201cConhecimento\u201d, suba os arquivos da base (lista abaixo).",
+    "Dê nome e imagem, escolha se é só seu ou público, e salve."]},
+  claude:{url:"https://claude.ai/projects",btn:"Abrir o Claude",steps:[
+    "Em claude.ai, crie um \u201cProjeto\u201d novo.",
+    "Abra \u201cInstruções do projeto\u201d e cole o texto copiado.",
+    "Adicione os arquivos da base no \u201cConhecimento do projeto\u201d.",
+    "Pronto: toda conversa dentro do Projeto já segue o agente.",
+    "Para um teste rápido, cole as instruções no começo de uma conversa nova."]}
+};
+let actTab="gpt";
+const DARCH=[
+  "Um arquivo por tema — nada de PDF gigante. O agente acha a resposta certa mais rápido.",
+  "Texto ou markdown limpo, com títulos claros. Use as próprias perguntas como cabeçalhos.",
+  "Dado que muda toda hora (preço, estoque) não entra no arquivo fixo — marque \u201cconsultar o sistema/atendente\u201d.",
+  "Nunca suba dado sensível: cartão, senha, CPF ou dados pessoais de clientes.",
+  "Coloque a data de atualização no topo de cada arquivo, para saber o que envelheceu."
+];
+function kbList(){
+  const it=[
+    {n:"Perguntas frequentes",d:"as dúvidas reais que ele mais vai receber, já com a resposta certa",f:"faq.md",always:true},
+    {n:"Políticas",d:"troca, garantia, entrega, privacidade — o que ele pode e não pode prometer",f:"politicas.md",always:true},
+    {n:"Catálogo / serviços",d:"o que você oferece, com preço e prazo",f:"catalogo.md",when:["Recomendar produtos","Calcular orçamentos","Registrar pedidos"]},
+    {n:"Regras de agenda",d:"horários, antecedência, como marcar e desmarcar",f:"agenda.md",when:["Agendar horários"]},
+    {n:"Passo a passo das tarefas",d:"como ele executa o que sabe fazer, na ordem certa",f:"procedimentos.md",always:true},
+    {n:"Exemplos de boas respostas",d:"3 a 5 respostas-modelo — calibram o jeito de falar dele",f:"exemplos-de-voz.md",always:true},
+    {n:"Quando chamar um humano",d:"a lista de casos que ele encaminha em vez de resolver",f:"escalonamento.md",always:true}
+  ];
+  return it.filter(x=>x.always||(x.when&&x.when.some(w=>S.habilidades.includes(w))));
+}
+function activationText(){
+  return Object.keys(ACT).map(k=>{const a=ACT[k];const t=k==="gpt"?"No ChatGPT (GPT)":"No Claude (Projeto)";
+    return `### ${t}\n`+a.steps.map((s,i)=>`${i+1}. ${s}`).join("\n")+`\nLink: ${a.url}`;}).join("\n\n");
+}
+function buildGuideMd(){
+  return `# ${S.nome.trim()||"Agente"} — Guia do agente (método ATLAS)\n\n`+
+    `## 1. Instruções (cole no campo de instruções)\n\n${buildPrompt()}\n\n`+
+    `## 2. Como ativar\n\n${activationText()}\n\n`+
+    `## 3. Base de conhecimento sugerida (camada Lembrança)\n\n${kbList().map(x=>`- ${x.n} (${x.f}) — ${x.d}`).join("\n")}\n\n`+
+    `## 4. Arquitetura de dados\n\n${DARCH.map(d=>`- ${d}`).join("\n")}\n`;
+}
+
+function resultView(){
+  const out=buildPrompt();
+  const a=ACT[actTab];
+  return `<div class="card">
+    <div class="done-badge">✓</div>
+    <h1 style="text-align:center">Tudo pronto!</h1>
+    <p class="lede" style="text-align:center">Estas são as instruções do ${esc(S.nome.trim()||"seu agente")}.</p>
+    <div class="result-out" id="out">${esc(out)}</div>
+    ${voiceBox()}
+    <div class="howto"><b>O que é isto</b>É a alma e a voz do agente em texto. Copie e cole no campo de instruções da plataforma — o passo a passo está logo abaixo.</div>
+    <div class="ractions">
+      <button class="prim" id="copy">Copiar instruções</button>
+      <button id="dl">Baixar guia (.md)</button>
+      <button id="edit">Voltar e editar</button>
+      <button id="restart">Criar outro</button>
+    </div>
+
+    <div class="section">
+      <div class="sh">Próximo passo</div>
+      <h2>Ativar seu agente</h2>
+      <p class="note">Escolha onde vai dar vida a ele:</p>
+      <div class="tabs">
+        <button class="tab ${actTab==='gpt'?'on':''}" data-tab="gpt">No ChatGPT (GPT)</button>
+        <button class="tab ${actTab==='claude'?'on':''}" data-tab="claude">No Claude (Projeto)</button>
+      </div>
+      <ol class="steps">${a.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
+      <a class="openbtn" href="${a.url}" target="_blank" rel="noopener">${esc(a.btn)} ↗</a>
+    </div>
+
+    <div class="section">
+      <div class="sh">Camada Lembrança · ATLAS</div>
+      <h2>O que dar de memória a ele</h2>
+      <p class="note">As instruções dão a alma e a voz. A base de conhecimento dá o que ele <em>sabe</em>. Anexe estes arquivos na plataforma:</p>
+      <ul class="kb">${kbList().map(x=>`<li><span><b>${esc(x.n)}</b> — ${esc(x.d)}</span><code>${esc(x.f)}</code></li>`).join("")}</ul>
+      <p class="note" style="margin-bottom:8px">Como organizar os dados:</p>
+      <div class="darch">${DARCH.map(d=>`• ${esc(d)}`).join("<br>")}</div>
+    </div>
+  </div>`;
+}
+
+function bind(){
+  document.querySelectorAll("[data-f]").forEach(el=>el.oninput=()=>{S[el.dataset.f]=el.value;saveDraft();});
+  document.querySelectorAll("[data-tog]").forEach(el=>el.onclick=()=>{const k=el.dataset.tog,v=el.dataset.v,a=S[k],i=a.indexOf(v);i<0?a.push(v):a.splice(i,1);render();});
+  document.querySelectorAll("[data-rm]").forEach(el=>el.onclick=()=>{const a=S[el.dataset.rm],i=a.indexOf(el.dataset.v);if(i>=0)a.splice(i,1);render();});
+  document.querySelectorAll("[data-add]").forEach(el=>el.onkeydown=e=>{if(e.key==="Enter")addCustom(el.dataset.add,el);});
+  document.querySelectorAll("[data-addbtn]").forEach(el=>el.onclick=()=>{const inp=document.querySelector(`[data-add="${el.dataset.addbtn}"]`);addCustom(el.dataset.addbtn,inp);});
+  document.querySelectorAll("[data-pick]").forEach(el=>el.onclick=()=>{S[el.dataset.pick]=el.dataset.v;render();});
+  document.querySelectorAll("[data-yn]").forEach(el=>el.onclick=()=>{S[el.dataset.yn]=el.dataset.v==="sim";render();});
+  document.querySelectorAll("[data-tab]").forEach(el=>el.onclick=()=>{actTab=el.dataset.tab;render();});
+  document.querySelectorAll("[data-nav]").forEach(el=>el.onclick=()=>{step+=+el.dataset.nav;if(step<0)step=0;render();window.scrollTo({top:0,behavior:"smooth"});});
+  const c=$("#copy");if(c)c.onclick=()=>{navigator.clipboard.writeText(buildPrompt()).then(()=>toast("Copiado! Agora é só colar.")).catch(()=>{const o=$("#out");const r=document.createRange();r.selectNode(o);getSelection().removeAllRanges();getSelection().addRange(r);toast("Selecione e copie");});};
+  const d=$("#dl");if(d)d.onclick=()=>{const b=new Blob([buildGuideMd()],{type:"text/markdown"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`${slug(S.nome)}-guia-atlas.md`;a.click();URL.revokeObjectURL(u);toast("Guia baixado");};
+  const ed=$("#edit");if(ed)ed.onclick=()=>{step=STEPS-1;render();window.scrollTo({top:0});};
+  const r=$("#restart");if(r)r.onclick=()=>{if(confirm("Começar um novo agente? O atual será apagado.")){clearDraft();S=blank();step=0;render();window.scrollTo({top:0});}};
+}
+function addCustom(key,inp){const v=(inp.value||"").trim();if(!v)return;if(!S[key].includes(v))S[key].push(v);inp.value="";render();const again=document.querySelector(`[data-add="${key}"]`);if(again)again.focus();}
+
+$("#exBtn").onclick=()=>{
+  const hasData = S.nome||S.funcao||S.valores.length||S.habilidades.length;
+  if(hasData && !confirm("Carregar o exemplo vai substituir o que você já preencheu. Continuar?"))return;
+  S={nome:"Lia",funcao:"tirar dúvidas e recomendar peças na minha loja de roupas",publico:"clientes da loja",
+     valores:["Cuidado com o cliente","Honestidade","Bom humor"],
+     nunca:["Inventar informação","Prometer o que não pode cumprir","Falar mal de concorrentes"],
+     incerteza:"Admite que não sabe e encaminha para uma pessoa",
+     tom:["Amigável","Caloroso","Direto"],evitar:["\u2018Prezado cliente\u2019"],frase:"Pode deixar comigo!",
+     habilidades:["Responder dúvidas","Recomendar produtos","Encaminhar para uma pessoa"],lembra:true};
+  step=0;render();toast("Exemplo carregado");
+};
+
+if(loadDraft())setTimeout(()=>toast("Rascunho recuperado"),300);
+render();</script>
+</body>
+</html>
